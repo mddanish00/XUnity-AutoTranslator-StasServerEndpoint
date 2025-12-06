@@ -339,5 +339,8 @@ ASALocalRun/
 # BeatPulse healthcheck temp database
 healthchecksdb
 
-/libs
+libs/*
+libs-il2cpp/*
+!libs/.gitkeep
+!libs-il2cpp/.gitkeep
 /build
