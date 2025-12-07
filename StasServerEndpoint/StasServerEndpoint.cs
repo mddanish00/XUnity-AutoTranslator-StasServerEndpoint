@@ -1,19 +1,15 @@
 ﻿using System;
-using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
+using StasServer.SimpleJSON;
 using XUnity.AutoTranslator.Plugin.Core.Endpoints;
 using XUnity.AutoTranslator.Plugin.Core.Endpoints.Http;
 using XUnity.AutoTranslator.Plugin.Core.Web;
-using System.Reflection;
-using System.IO;
-using System.Net;
-using XUnity.AutoTranslator.Plugin.Core;
 using XUnity.Common.Logging;
-using StasServer.SimpleJSON;
 
 namespace StasServer
 {
