@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 using XUnity.AutoTranslator.Plugin.Core.Endpoints;
 using XUnity.AutoTranslator.Plugin.Core.Endpoints.Http;
 using XUnity.AutoTranslator.Plugin.Core.Web;
@@ -51,6 +52,11 @@ namespace StasServer
 
         private bool DisableCache { get; set; }
 
+        private bool EnablePreventRetranslation { get; set; }
+
+        private string PlayerJPName { get; set; }
+
+        private string PlayerTranslatedName { get; set; }
 
         public override void Initialize(IInitializationContext context)
         {
@@ -61,6 +67,9 @@ namespace StasServer
             this.StasServerExePath = context.GetOrCreateSetting("StasServer", "StasServerExePath", "");
             this.ModelsFolderPath = context.GetOrCreateSetting("StasServer", "ModelsFolderPath", "");
             this.DisableCache = context.GetOrCreateSetting("StasServer", "DisableCache", false);
+            this.EnablePreventRetranslation = context.GetOrCreateSetting("StasServer", "EnablePreventRetranslation", false);
+            this.PlayerJPName = context.GetOrCreateSetting("StasServer", "PlayerJPName", "プレーヤー");
+            this.PlayerTranslatedName = context.GetOrCreateSetting("StasServer", "PlayerTranslatedName", "Player");
             // Inherit from SugoiOfflineTranslator
             this.ServerPort = context.GetOrCreateSetting("StasServer", "ServerPort", "14367");
             this.EnableCuda = context.GetOrCreateSetting("StasServer", "EnableCuda", false);
@@ -220,6 +229,20 @@ namespace StasServer
             return $"http://127.0.0.1:{this.ServerPort}/";
         }
 
+        private readonly Regex innerJpnRegex = new Regex(@"([\p{IsCJKUnifiedIdeographs}\p{IsCJKSymbolsandPunctuation}\p{IsHiragana}\p{IsKatakana}]+)");
+
+        public string CheckIfAlreadyTranslated(string rawText)
+        {
+            string substitutedText = rawText.Replace(this.PlayerJPName, this.PlayerTranslatedName);
+            if (innerJpnRegex.IsMatch(substitutedText))
+            {
+                return rawText;
+            }
+            else
+            {
+                return substitutedText;
+            }
+        }
 
         public override void OnCreateRequest(IHttpRequestCreationContext context)
         {
@@ -227,13 +250,26 @@ namespace StasServer
 
             if (this.MaxTranslationsPerRequestInSetting != 1)
             {
-                json["content"] = context.UntranslatedText;
-                json["batch"] = context.UntranslatedTexts;
+                if (this.EnablePreventRetranslation)
+                {
+                    json["batch"] = context.UntranslatedTexts.Select(txt => this.CheckIfAlreadyTranslated(txt)).ToArray();
+                }
+                else
+                {
+                    json["batch"] = context.UntranslatedTexts;
+                }
                 json["message"] = "translate batch";
             }
             else
             {
-                json["content"] = context.UntranslatedText;
+                if (this.EnablePreventRetranslation)
+                {
+                    json["content"] = this.CheckIfAlreadyTranslated(context.UntranslatedText);
+                }
+                else
+                {
+                    json["content"] = context.UntranslatedText;
+                }
                 json["message"] = "translate sentences";
             }
 
