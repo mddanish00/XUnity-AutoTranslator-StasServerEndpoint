@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
 using XUnity.AutoTranslator.Plugin.Core.Endpoints;
@@ -21,27 +22,20 @@ namespace StasServer
 
         public override string FriendlyName => "stas-server";
 
-        //public override int MaxConcurrency => 1;
-        int maxTranslationsPerRequest { get; set; } = 100;
+        // stas-server is using asynchronous web server (bottle.py with tornado)
+        // So, no actual limit. I just use 50 because that what most of Endpoints use if not 1.
+        public override int MaxConcurrency => 50;
 
-        public override int MaxTranslationsPerRequest => maxTranslationsPerRequest;
+        int MaxTranslationsPerRequestInSetting { get; set; } = 10;
+
+        public override int MaxTranslationsPerRequest => MaxTranslationsPerRequestInSetting;
 
         private Process process;
         private bool isDisposing = false;
         private bool isStarted = false;
         private bool isReady = false;
 
-        private string ServerScriptPath { get; set; }
-        private byte[] ServerScriptData { get; set; }
-
-        private string ServerExecPath { get; set; }
-
-        //private string ServerPort => 14366;
         private string ServerPort { get; set; }
-
-        private string SugoiInstallPath { get; set; }
-
-        private bool UseExternalServer { get; set; } = false;
 
         private bool EnableCuda { get; set; }
 
@@ -51,21 +45,26 @@ namespace StasServer
 
         private bool LogServerMessages { get; set; }
 
-        private bool EnableCTranslate2 { get; set; }
+        private string ModelsFolderPath { get; set; }
 
-        private string PythonExePath { get; set; }
+        private string StasServerExePath { get; set; }
+
+        private bool DisableCache { get; set; }
+
 
         public override void Initialize(IInitializationContext context)
         {
             if (context.SourceLanguage != "ja") throw new Exception("Only ja is supported as source language");
             if (context.DestinationLanguage != "en") throw new Exception("Only en is supported as destination language");
 
-            this.SugoiInstallPath = context.GetOrCreateSetting("StasServer", "InstallPath", "");
+            // Exclusive StasServerEndpoint settings
+            this.StasServerExePath = context.GetOrCreateSetting("StasServer", "StasServerExePath", "");
+            this.ModelsFolderPath = context.GetOrCreateSetting("StasServer", "ModelsFolderPath", "");
+            this.DisableCache = context.GetOrCreateSetting("StasServer", "DisableCache", false);
+            // Inherit from SugoiOfflineTranslator
             this.ServerPort = context.GetOrCreateSetting("StasServer", "ServerPort", "14367");
             this.EnableCuda = context.GetOrCreateSetting("StasServer", "EnableCuda", false);
-            this.maxTranslationsPerRequest = context.GetOrCreateSetting("StasServer", "MaxBatchSize", 10);
-            this.ServerScriptPath = context.GetOrCreateSetting("StasServer", "CustomServerScriptPath", "");
-            this.maxTranslationsPerRequest = context.GetOrCreateSetting("StasServer", "MaxBatchSize", 10);
+            this.MaxTranslationsPerRequestInSetting = context.GetOrCreateSetting("StasServer", "MaxBatchSize", 10);
             this.EnableShortDelay = context.GetOrCreateSetting("StasServer", "EnableShortDelay", false);
             this.DisableSpamChecks = context.GetOrCreateSetting("StasServer", "DisableSpamChecks", true);
             this.LogServerMessages = context.GetOrCreateSetting("StasServer", "LogServerMessages", false);
@@ -80,60 +79,26 @@ namespace StasServer
                 context.DisableSpamChecks();
             }
 
-            if (!string.IsNullOrEmpty(this.SugoiInstallPath))
+            if (!string.IsNullOrEmpty(this.StasServerExePath) && !string.IsNullOrEmpty(this.ModelsFolderPath))
             {
                 this.SetupServer(context);
             }
             else
             {
-                XuaLogger.AutoTranslator.Info($"Sugoi install path not configured. Either configure a path or start sugoi externally.");
-                this.UseExternalServer = true;
-                this.ServerPort = "14366";
-                this.maxTranslationsPerRequest = 1;
-            }
-        }
-
-        private static string PathCandidate(string description, string prefix, string[] paths, bool optional=false)
-        {
-            string[] candidates = paths.Select(p => Path.Combine(prefix, p)).ToArray();
-            var existing = candidates.Where(p => File.Exists(p) || Directory.Exists(p)).FirstOrDefault();
-            if (existing != null)
-            {
-                return existing;
-            }
-            else
-            {
-                if (optional) return null;
-                throw new Exception($"Unable to find {description} at any of the following locations: {string.Join(", ", candidates)}");
+                XuaLogger.AutoTranslator.Info($"Either StasServerExePath or CT2FolderPath or both are not specified. Please refer to README for proper instruction to set up this Endpoint.");
             }
         }
 
         private void SetupServer(IInitializationContext context)
         {
-            this.PythonExePath = PathCandidate(
-                "Python power source",
-                this.SugoiInstallPath,
-                new string[] { "Code\\Power-Source\\Python39\\python.exe" });
-
-            this.ServerExecPath = PathCandidate(
-                "Server exec path",
-                this.SugoiInstallPath,
-                new string[]
-                {
-                    // V11
-                    "Code\\backendServer\\Modules\\Translation-API-Server\\Offline",
-
-                    // V10
-                    "Code\\backendServer\\Program-Backend\\Sugoi-Japanese-Translator\\offlineTranslation"
-                });
-
-            if (string.IsNullOrEmpty(this.ServerScriptPath))
+            if (!File.Exists(this.StasServerExePath))
             {
-                this.ServerScriptData = Properties.Resources.SugoiOfflineTranslatorServer;
+                throw new Exception("stas-server.exe not found on the specified path.");
             }
-            else
+
+            if (!Directory.Exists(this.ModelsFolderPath))
             {
-                this.ServerScriptData = File.ReadAllBytes(this.ServerScriptPath);
+                throw new Exception("models folder not found on the specified path.");
             }
 
             var configuredEndpoint = context.GetOrCreateSetting<string>("Service", "Endpoint");
@@ -141,6 +106,7 @@ namespace StasServer
             {
                 this.StartProcess();
             }
+
         }
 
         public void Dispose()
@@ -158,16 +124,29 @@ namespace StasServer
         {
             if (this.process == null || this.process.HasExited)
             {
-                string cuda = this.EnableCuda ? "--cuda" : "";
 
-                XuaLogger.AutoTranslator.Info($"Running Sugoi Offline Translation server:\n\tExecPath: {this.ServerExecPath}\n\tPythonPath: {this.PythonExePath}\n\tCustomScriptPath: {this.ServerScriptPath}");
+                XuaLogger.AutoTranslator.Info($"Running stas-server:\n\tExecPath: {this.StasServerExePath}");
+
+                List<string> argumentsList = new List<string>()
+                {
+                    this.ServerPort,
+                    "--models_dir",
+                    $"\"{this.ModelsFolderPath}\""
+                };
+                if (this.EnableCuda)
+                {
+                    argumentsList.Add("--cuda");
+                }
+                if (this.DisableCache)
+                {
+                    argumentsList.Add("--no-cache");
+                }
 
                 this.process = new Process();
                 this.process.StartInfo = new ProcessStartInfo()
                 {
-                    FileName = this.PythonExePath,
-                    Arguments = $" - {this.ServerPort} {cuda}",
-                    WorkingDirectory = this.ServerExecPath,
+                    FileName = this.StasServerExePath,
+                    Arguments = string.Join(" ", argumentsList.ToArray()),
                     UseShellExecute = false,
                     RedirectStandardError = true,
                     RedirectStandardOutput = true,
@@ -179,12 +158,6 @@ namespace StasServer
                 this.process.ErrorDataReceived += this.ServerDataReceivedEventHandler;
 
                 this.process.Start();
-
-                using (var stream = this.process.StandardInput.BaseStream)
-                {
-                    stream.Write(this.ServerScriptData, 0, this.ServerScriptData.Length);
-                }
-
                 this.process.BeginErrorReadLine();
                 this.process.BeginOutputReadLine();
                 this.isStarted = true;
@@ -200,9 +173,10 @@ namespace StasServer
                 XuaLogger.AutoTranslator.Info(args.Data);
             }
 
-            if (!this.isReady && args.Data.Contains("(Press CTRL+C to quit)"))
+            if (!this.isReady && args.Data.Contains("| INFO | Server | Listening on"))
             {
                 this.isReady = true;
+                XuaLogger.AutoTranslator.Info("stas-server is successfully launched and ready to use!");
             }
         }
 
@@ -213,10 +187,10 @@ namespace StasServer
             var iterator = base.Translate(context);
 
             while (iterator.MoveNext()) yield return iterator.Current;
-            
+
             var elapsed = stopwatch.Elapsed.TotalSeconds;
 
-            if(LogServerMessages)
+            if (this.LogServerMessages)
             {
                 XuaLogger.AutoTranslator.Info($"Translate complete {elapsed}s");
             }
@@ -224,11 +198,6 @@ namespace StasServer
 
         public override IEnumerator OnBeforeTranslate(IHttpTranslationContext context)
         {
-            if (this.UseExternalServer)
-            {
-                yield break;
-            }
-
             if (this.isStarted && this.process.HasExited)
             {
                 this.isStarted = false;
@@ -243,19 +212,20 @@ namespace StasServer
                 this.StartProcess();
             }
 
-            while (!isReady) yield return null;
+            while (!this.isReady) yield return null;
         }
 
         public string GetUrlEndpoint()
         {
-            return $"http://127.0.0.1:{ServerPort}/";
+            return $"http://127.0.0.1:{this.ServerPort}/";
         }
+
 
         public override void OnCreateRequest(IHttpRequestCreationContext context)
         {
             var json = new JSONObject();
 
-            if (!this.UseExternalServer)
+            if (this.MaxTranslationsPerRequestInSetting != 1)
             {
                 json["content"] = context.UntranslatedText;
                 json["batch"] = context.UntranslatedTexts;
@@ -269,7 +239,7 @@ namespace StasServer
 
             var data = json.ToString();
 
-            var request = new XUnityWebRequest("POST", GetUrlEndpoint(), data);
+            var request = new XUnityWebRequest("POST", this.GetUrlEndpoint(), data);
             request.Headers["Content-Type"] = "application/json";
             request.Headers["Accept"] = "*/*";
 
@@ -280,8 +250,8 @@ namespace StasServer
         {
             var data = context.Response.Data;
             var result = JSON.Parse(data);
-            
-            if (!UseExternalServer)
+
+            if (this.MaxTranslationsPerRequestInSetting != 1)
             {
                 context.Complete(result.AsStringList.ToArray());
             }
