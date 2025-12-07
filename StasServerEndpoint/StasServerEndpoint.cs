@@ -11,15 +11,15 @@ using System.IO;
 using System.Net;
 using XUnity.AutoTranslator.Plugin.Core;
 using XUnity.Common.Logging;
-using SugoiOfflineTranslator.SimpleJSON;
+using StasServer.SimpleJSON;
 
-namespace SugoiOfflineTranslator
+namespace StasServer
 {
-    public class SugoiOfflineTranslatorEndpoint : HttpEndpoint, ITranslateEndpoint, IDisposable
+    public class StasServerEndpoint : HttpEndpoint, ITranslateEndpoint, IDisposable
     {
-        public override string Id => "SugoiOfflineTranslator";
+        public override string Id => "StasServer";
 
-        public override string FriendlyName => "Sugoi Offline Translator";
+        public override string FriendlyName => "stas-server";
 
         //public override int MaxConcurrency => 1;
         int maxTranslationsPerRequest { get; set; } = 100;
@@ -60,15 +60,15 @@ namespace SugoiOfflineTranslator
             if (context.SourceLanguage != "ja") throw new Exception("Only ja is supported as source language");
             if (context.DestinationLanguage != "en") throw new Exception("Only en is supported as destination language");
 
-            this.SugoiInstallPath = context.GetOrCreateSetting("SugoiOfflineTranslator", "InstallPath", "");
-            this.ServerPort = context.GetOrCreateSetting("SugoiOfflineTranslator", "ServerPort", "14367");
-            this.EnableCuda = context.GetOrCreateSetting("SugoiOfflineTranslator", "EnableCuda", false);
-            this.maxTranslationsPerRequest = context.GetOrCreateSetting("SugoiOfflineTranslator", "MaxBatchSize", 10);
-            this.ServerScriptPath = context.GetOrCreateSetting("SugoiOfflineTranslator", "CustomServerScriptPath", "");
-            this.maxTranslationsPerRequest = context.GetOrCreateSetting("SugoiOfflineTranslator", "MaxBatchSize", 10);
-            this.EnableShortDelay = context.GetOrCreateSetting("SugoiOfflineTranslator", "EnableShortDelay", false);
-            this.DisableSpamChecks = context.GetOrCreateSetting("SugoiOfflineTranslator", "DisableSpamChecks", true);
-            this.LogServerMessages = context.GetOrCreateSetting("SugoiOfflineTranslator", "LogServerMessages", false);
+            this.SugoiInstallPath = context.GetOrCreateSetting("StasServer", "InstallPath", "");
+            this.ServerPort = context.GetOrCreateSetting("StasServer", "ServerPort", "14367");
+            this.EnableCuda = context.GetOrCreateSetting("StasServer", "EnableCuda", false);
+            this.maxTranslationsPerRequest = context.GetOrCreateSetting("StasServer", "MaxBatchSize", 10);
+            this.ServerScriptPath = context.GetOrCreateSetting("StasServer", "CustomServerScriptPath", "");
+            this.maxTranslationsPerRequest = context.GetOrCreateSetting("StasServer", "MaxBatchSize", 10);
+            this.EnableShortDelay = context.GetOrCreateSetting("StasServer", "EnableShortDelay", false);
+            this.DisableSpamChecks = context.GetOrCreateSetting("StasServer", "DisableSpamChecks", true);
+            this.LogServerMessages = context.GetOrCreateSetting("StasServer", "LogServerMessages", false);
 
             if (this.EnableShortDelay)
             {

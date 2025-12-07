@@ -40,7 +40,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 
-namespace SugoiOfflineTranslator.SimpleJSON
+namespace StasServer.SimpleJSON
 {
     public enum JSONNodeType
     {

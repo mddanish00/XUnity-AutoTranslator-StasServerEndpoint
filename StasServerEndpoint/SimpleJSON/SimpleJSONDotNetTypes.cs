@@ -38,7 +38,7 @@
 
 #endregion License and information
 
-namespace SugoiOfflineTranslator.SimpleJSON
+namespace StasServer.SimpleJSON
 {
     using System.Globalization;
     using System.Collections.Generic;
