@@ -1,87 +1,105 @@
-# XUnity-AutoTranslator-SugoiOfflineTranslatorEndpoint
+# XUnity-AutoTranslator-StasServerEndpoint
 
-Translation endpoint to support Sugoi Translator's offline translation backend (https://www.youtube.com/watch?v=r8xFzVbmo7k)
+Translation endpoint to support translating using [stas-server](https://github.com/mddanish00/stas-server).
 
-Tested to support Sugoi Toolkit V10.
-
-The Sugoi Translator's offline model boasts comparability with Deepl translations, not to mention shorter translation delay and nonexistent throttling limits.
-
-Though just like any machine translators, there will be oddities and unexpected mistranslations. You're still better off using official/fan translations/localizations if those are available.
-
-Even so, unless you already use SugoiTranslator (and its offline model), you might be better off using the google, deepl, or other official translation endpoints (unless you have the disk space and processing power to spare).
-
+Mainly tested on [PriconneRe-TL](https://github.com/ImaterialC/PriconneRe-TL).
 
 ## Requirements
 
-XUnity.AutoTranslator 5.0.0 or newer.
-
-SugoiTranslator's offline mode recommends at least 8GB of RAM. Make sure you have that + the amount of memory the game you're running also requires.
-
-CUDA support requires an NVIDIA graphics card that supports it (GTX10xx, RTX series).
+- XUnity-AutoTranslator v5.0.0 or higher
+- Working stas-server installation. Please check stas-server [README.md](https://github.com/mddanish00/stas-server?tab=readme-ov-file#user-guide) on how to setup stas-server.
 
 
 ## Installation
 
-0. Install XUAT. See https://github.com/bbepis/XUnity.AutoTranslator#installation for installation instructions, and then get that working with the default translators before proceeding.
+1. Install XUnity-AutoTranslator if you not done yet. Please check the project [README.md](https://github.com/bbepis/XUnity.AutoTranslator?tab=readme-ov-file#installation) for instructions.
 
-1. Install Sugoi Toolkit. See https://www.youtube.com/watch?v=r8xFzVbmo7k for details on installation and setup. Make sure you have a working translator first by running the offline translator script `Sugoi-Translator-Toolkit (click here).bat` then select "Sugoi Translator Offline".
+2. Download pre-compiled dll from Releases and install into `XUnity.AutoTranslator\Translators` folder. (The folder location may different based on loader you are using to use for XUAT)
 
-2. Get the latest `SugoiOfflineTranslator.dll` file from the latest release: https://github.com/Vin-meido/XUnity-AutoTranslator-SugoiOfflineTranslatorEndpoint/releases/latest/. Save it in XUAT's `Translators` folder. The location of this folder depends on the loader you are using to use for XUAT. Consult XUAT's installation instructions as to where to expect this folder is located at.
+> DLL Release is compiled with the pinned version of XUnity-AutoTranslator. (Usually, whatever is the latest version at the time of commit.)
 
 3. Run your game once to generate/update the XUAT configuration file. Once the game has run and initialized properly, exit the game.
 
-4. Backup your XUAT configuration file (`AutoTranslatorConfig.ini`). After you have a backup copy, edit the configuration and change the `Endpoint` setting to `SugoiOfflineTranslator`.  Your `[Service]` section should look like this:
+4. Backup your XUAT configuration file (`AutoTranslatorConfig.ini`). After you have a backup copy, edit the configuration and change the `Endpoint` setting to `StasServer`.  Your `[Service]` section should look like this:
 ```
 [Service]
-Endpoint=SugoiOfflineTranslator
+Endpoint=StasServer
 FallbackEndpoint=
 ```
 
-5. **(optional)** Go to the `[SugoiOfflineTranslator]` section of the configuration and set the `InstallPath` setting to the full path where Sugoi Translator is installed/extracted.  This folder is the folder that contains `Sugoi-Translator-Toolkit (click here).bat`.
-
-If you installed the CUDA support, set `EnableCuda` to `True` and increase `MaxBatchSize` to a larger value (e.g. `100`).
-
-Optionally, if you want the translations to reflect faster, set `EnableShortDelay` to `True`. There's a bunch more configuration options you can set (refer to the configuration section for details on what they do)
-
-
-## Usage
-
-Run the game. If you set the `InstallPath` setting, do not run the SugoiTranslator's offline mode, as the endpoint starts its own version of the server.
-
-Once the game is running you can press `Alt`+`0` to bring up the XUAT panel to confirm that you've configured the endpoint properly and if it's translating.
-
-
-## Updating
-
-The translator endpoint may be updated by just extracting / overwriting the old plugin based on your installation. Though there may be additional steps based on what version you are upgrading from:
-
-### Version 1.5.0
-
-Version 1.5.0+ supports SugoiToolkit V10 or newer. If you are using old versions of the toolkit, remain in version 1.4.0. This only applies if you are using the InstallPath setting.
-
-### Versions older than 1.4.0
-
-Versions prior to 1.4.0 had an optional instruction to install XUATHooks. As of XUAT 4.21.0 / endpoint version 1.4.0, this is no longer needed. Remove the old XUATHooks dll when updating, and then set `EnableShortDelay` to `True` in the updated configuration.
-
-### Versions older than 1.2.0
-
-Versions prior to 1.2.0 had instructions to extract SugoiOfflineTranslatorServer.py together with the translator dll. This is no longer needed and removing the old server.py file can be done.
-
-
 ## Configuration
 
-`InstallPath`: The location of your Sugoi Translator install. When set, automatically starts the translation backend internally when you start the game. This must be set to the folder that contains the various `.bat` batch files to start the different translator modes.
+Example config in `AutoTranslatorConfig.ini`.
 
-`ServerPort`: Dedicated port to use for the internal backend endpoint.
+```
+[StasServer]
+StasServerExePath=C:\Users\User\.local\bin\stas-server.exe
+ServerPort=14467
+ModelsFolderPath=D:\SugoiToolkit\models
+EnableCuda=False
+DisableCache=False
+EnablePreventRetranslation=True
+PlayerJPName=ユウキ
+PlayerTranslatedName=Yuuki
+MaxBatchSize=10
+EnableShortDelay=True
+DisableSpamChecks=True
+LogServerMessages=False
+```
 
-`EnableCuda`: Enables CUDA / graphics card acceleration for translation. Set to True if you installed the CUDA extensions for Sugoi Translator
+- StasServerExePath: Path to stas-server.exe
+- ServerPort: Port used to launch the server also communicate with the server.
+- ModelsFolderPath: Path to Sugoi Offline Translator models folder.
+- EnableCuda: `True` to use CUDA when launching stas-server (Need NVDIA GPU)
+- DisableCache: `True` to disable caching translation. (Highly recommended to enable caching)
+- EnablePreventRetranslation: `True` to prevent retranslation of translated content when included Player Name in Japanese.
+- PlayerJPName: Player Name in Japanese. (Only in Use when EnablePreventRetranslation is `True`)
+- PlayerTranslatedName: Translated PlayerJPName. (Only in Use when EnablePreventRetranslation is `True`)
+- MaxBatchSize: Number of lines in a translation request.
+- EnableShortDelay: Enable the translation delay.
+- DisableSpamChecks: Disables the spam checks for this endpoint.
+- LogServerMessages: Log stas-server message in XUAT console.
 
-`MaxBatchSize`: Sets the maximum amount of untranslated lines to send to the translator per batch. If your pc specifications can handle it, you can set it to a high value (100). However, the default should work fine in most cases.
 
-`CustomServerScriptPath`: Sets the custom script server to use if you want to use your own or customize the backend server script.
+## Building
 
-`LogServerMessages`: Logs the backend server's messages into the console of your game (if your loader has it enabled). Useful when reporting a problem (or when you want to see how fast each line is getting translated).
+For developers, it is recommended to use your project XUnity-AutoTranslator DLL to build this project as long it meet the requirements for maximum compatibility.
 
-`EnableShortDelay`: Reduces the 0.9s delay used by XUAT to throttle translation requests. This results in making the translations reflect faster (if your pc can handle it). If your game has scrolling text (e.g. dialog/message windows), make sure to set them to as fast as possible to avoid sending multiple requests for partial text. Disable this if you are having issues with fast scrolling / changing text.
+- Make sure .NET 6 SDK is installed.
+- XUnity-AutoTranslator v5.0.0 or higher. 
+- Download XUnity.AutoTranslator-Developer-X.X.X.zip. 
+- If you using IL2CPP, download XUnity.AutoTranslator-Developer-IL2CPP-X.X.X.zip instead.
+- If you want to use your project DLLs, put DLLs in libs folder or libs-il2cpp if using il2cpp.
 
-`DisableSpamChecks`: Disables the general spam checks associated with online translators (since this is an offline backend, we don't necessarily need it). If your pc cannot handle too many translations requests, you can disable this, but the default should be fine for most setups.
+
+### Normal Version
+
+1. Unzip XUnity.AutoTranslator-Developer-X.X.X.zip in this repo. Rename `Developer` folder to `libs`.
+2. Run the build command.
+```
+dotnet build -c Release -v n -f net35
+```
+3. Copy the builded DLL, `build\Release\net35\StasServer.dll` to your project `XUnity.AutoTranslator\Translators` folder.
+
+### IL2CPP Version
+
+
+1. Unzip XUnity.AutoTranslator-Developer-IL2CPP-X.X.X.zip in this repo. Rename `Developer` folder to `libs-il2cpp`.
+2. Run the build command.
+```
+dotnet build -c Release -v n -f net6.0
+```
+3. Copy the builded DLL, `build\Release\net6.0\StasServer.dll` to your project `XUnity.AutoTranslator\Translators` folder.
+
+## License
+
+This project is licensed under the [MIT license](./LICENSE).
+
+Copyright for portions of this project are held by [Vin-meido](https://github.com/Vin-meido), 2021 as part of project [XUnity-AutoTranslator-SugoiOfflineTranslatorEndpoint](https://github.com/Vin-meido/XUnity-AutoTranslator-SugoiOfflineTranslatorEndpoint). 
+
+All other copyright for this are held by [mddanish00](https://github.com/mddanish00), 2025.
+
+## Acknowledgement
+
+- Thanks to [MingShiba](https://www.patreon.com/mingshiba) for creating the Sugoi Japanese Toolkit and making high-quality (still machine translation) available to enjoy many untranslated Japanese works.
+- Thanks to [Vin-meido](https://github.com/Vin-meido) for the original [XUnity-AutoTranslator-SugoiOfflineTranslatorEndpoint](https://github.com/Vin-meido/XUnity-AutoTranslator-SugoiOfflineTranslatorEndpoint) support. This project is based on that project.
