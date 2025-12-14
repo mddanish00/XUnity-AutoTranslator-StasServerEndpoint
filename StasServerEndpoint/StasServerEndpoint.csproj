@@ -5,7 +5,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>StasServer</RootNamespace>
     <AssemblyName>StasServer</AssemblyName>
-	  <Version>1.0.0</Version>
+	  <Version>0.0.0</Version>
     <Authors>mddanish00;Vin-meido</Authors>
     <Copyright>
       Copyright (c) 2021 Vin-meido
