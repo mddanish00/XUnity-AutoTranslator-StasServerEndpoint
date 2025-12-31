@@ -6,8 +6,13 @@
       "bump-patch-for-minor-pre-major": false,
       "draft": false,
       "prerelease": false,
+      "release-type": "simple",
       "extra-files": [
-        "StasServerEndpoint/StasServerEndpoint.csproj"
+        {
+          "type": "xml",
+          "path": "StasServerEndpoint/StasServerEndpoint.csproj",
+          "xpath": "/*/PropertyGroup/Version"
+        }
       ]
     }
   },
