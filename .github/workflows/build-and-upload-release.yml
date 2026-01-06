@@ -22,7 +22,7 @@ jobs:
         shell: powershell
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ inputs.repo_tag }}
 
@@ -33,7 +33,7 @@ jobs:
 
       - name: Cache and download XUAT dependencies
         id: cache-xuat
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             XUnity.AutoTranslator-Developer-${{ inputs.xuat_version }}.zip
@@ -60,7 +60,7 @@ jobs:
           Compress-Archive -Path build/Release/net6.0/StasServer.dll -DestinationPath StasServerEndpoint-IL2CPP-${{ inputs.repo_tag }}.zip
       
       - name: Upload the zipped DLLs as artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: release-artifacts
           path: |
@@ -75,12 +75,12 @@ jobs:
       contents: write # To upload release assets and update the release
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: release-artifacts
           
       - name: Update release and upload assets
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           script: |
             const tag = '${{ inputs.repo_tag }}';
