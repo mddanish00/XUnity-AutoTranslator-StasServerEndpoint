@@ -6,7 +6,7 @@ on:
         required: true
         type: string
       xuat_version:
-        description: 'The version of XUAT to use for building the release'
+        description: 'The version of XUAT to use for building the release without v'
         required: true
         type: string
   repository_dispatch:

@@ -6,7 +6,7 @@ on:
         required: true
         type: string
       xuat_version:
-        description: 'The version of XUAT to use for building the release'
+        description: 'The version of XUAT to use for building the release without v'
         required: true
         type: string
 
@@ -49,9 +49,11 @@ jobs:
       - name: Set up libs and libs-il2cpp
         run: |
             Expand-Archive -Path XUnity.AutoTranslator-Developer-${{ inputs.xuat_version }}.zip -DestinationPath .
-            Rename-Item -Path "Developer" -NewName "libs"
+            Copy-Item -Path "Developer\*" -Destination "libs" -Recurse -Force
+            Remove-Item -Path "Developer" -Recurse -Force
             Expand-Archive -Path XUnity.AutoTranslator-Developer-IL2CPP-${{ inputs.xuat_version }}.zip -DestinationPath .
-            Rename-Item -Path "Developer" -NewName "libs-il2cpp"
+            Copy-Item -Path "Developer\*" -Destination "libs-il2cpp" -Recurse -Force
+            Remove-Item -Path "Developer" -Recurse -Force
 
       - name: Build and zip the DLLs
         run: |
@@ -94,13 +96,13 @@ jobs:
             });
 
             const current_body = release.data.body || '';
-            const new_line = `Build with XUAT version: ${{ inputs.xuat_version }}`;
+            const new_line = `Build with XUAT version: v${{ inputs.xuat_version }}`;
             let new_body;
 
             if (current_body.includes("Build with XUAT version:")) {
               new_body = current_body.replace(/Build with XUAT version: .*/, new_line);
             } else {
-              new_body = `${current_body}\n${new_line}`;
+              new_body = `${current_body}\n\n${new_line}`;
             }
 
             await github.rest.repos.updateRelease({
