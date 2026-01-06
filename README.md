@@ -97,7 +97,7 @@ This project is licensed under the [MIT license](./LICENSE).
 
 Copyright for portions of this project are held by [Vin-meido](https://github.com/Vin-meido), 2021 as part of project [XUnity-AutoTranslator-SugoiOfflineTranslatorEndpoint](https://github.com/Vin-meido/XUnity-AutoTranslator-SugoiOfflineTranslatorEndpoint). 
 
-All other copyright for this are held by [mddanish00](https://github.com/mddanish00), 2025.
+All other copyright for this project are held by [mddanish00](https://github.com/mddanish00), 2025.
 
 ## Acknowledgement
 
