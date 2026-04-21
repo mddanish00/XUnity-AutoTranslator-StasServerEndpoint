@@ -112,20 +112,8 @@ jobs:
               body: new_body,
             });
 
-            const fs = require('fs');
-            const path = require('path');
-            const files = [
-              'StasServerEndpoint-${{ inputs.repo_tag }}.zip',
-              'StasServerEndpoint-IL2CPP-${{ inputs.repo_tag }}.zip'
-            ];
-
-            for (const file of files) {
-              const filePath = path.join(process.cwd(), file);
-              await github.rest.repos.uploadReleaseAsset({
-                owner,
-                repo,
-                release_id: release.data.id,
-                name: file,
-                data: fs.readFileSync(filePath),
-              });
-            }
+      - name: Upload release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload ${{ inputs.repo_tag }} StasServerEndpoint-${{ inputs.repo_tag }}.zip StasServerEndpoint-IL2CPP-${{ inputs.repo_tag }}.zip --clobber --repo mddanish00/XUnity-AutoTranslator-StasServerEndpoint
