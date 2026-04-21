@@ -27,9 +27,9 @@ jobs:
           ref: ${{ inputs.repo_tag }}
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v5
+        uses: fast-actions/setup-dotnet@v1
         with:
-          dotnet-version: '8.x'
+          sdk-version: 'lts'
 
       - name: Cache and download XUAT dependencies
         id: cache-xuat
