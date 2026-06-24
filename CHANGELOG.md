@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/mddanish00/XUnity-AutoTranslator-StasServerEndpoint/compare/v1.0.0...v1.1.0) (2026-06-24)
+
+
+### Features
+
+* add process to expand ruby text to usable format ([c234208](https://github.com/mddanish00/XUnity-AutoTranslator-StasServerEndpoint/commit/c2342081e37ef4d291af12a006333b0cb8f06a59))
+
 ## 1.0.0 (2026-01-06)
 
 
