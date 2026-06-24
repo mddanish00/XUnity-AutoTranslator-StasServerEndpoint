@@ -225,8 +225,8 @@ namespace StasServer
             return $"http://127.0.0.1:{this.ServerPort}/";
         }
 
-        private readonly Regex innerJpnRegex = new Regex(@"([\p{IsCJKUnifiedIdeographs}\p{IsCJKSymbolsandPunctuation}\p{IsHiragana}\p{IsKatakana}]+)");
-        private readonly Regex rubyTextRegex = new Regex(@"\[rub:([^\]]+)\]([^\[]+)\[\/rub\]");
+        private readonly Regex innerJpnRegex = new Regex(@"([\p{IsCJKUnifiedIdeographs}\p{IsCJKSymbolsandPunctuation}\p{IsHiragana}\p{IsKatakana}]+)", RegexOptions.Compiled);
+        private readonly Regex rubyTextRegex = new Regex(@"\[rub:([^\]]+)\]([^\[]+)\[\/rub\]", RegexOptions.Compiled);
 
         public string CheckIfAlreadyTranslated(string rawText)
         {
@@ -251,6 +251,9 @@ namespace StasServer
 
         public string PreProcessText(string rawText)
         {
+            // if null or empty string, return it
+            if (string.IsNullOrEmpty(rawText)) return rawText;
+
             string newText = rawText;
             if (this.EnablePreventRetranslation)
             {
