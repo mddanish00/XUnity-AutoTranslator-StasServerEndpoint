@@ -226,6 +226,7 @@ namespace StasServer
         }
 
         private readonly Regex innerJpnRegex = new Regex(@"([\p{IsCJKUnifiedIdeographs}\p{IsCJKSymbolsandPunctuation}\p{IsHiragana}\p{IsKatakana}]+)");
+        private readonly Regex rubyTextRegex = new Regex(@"\[rub:([^\]]+)\]([^\[]+)\[\/rub\]");
 
         public string CheckIfAlreadyTranslated(string rawText)
         {
@@ -240,32 +241,39 @@ namespace StasServer
             }
         }
 
+        // stas-server or to be specific the model used by the program not capable of translating and
+        // putting the ruby in correct format that needed for ruby text to work
+        // So, we strip the ruby text in the raw text and put it in parenthesis instead.
+        public string ExpandRubyText(string rawText)
+        {/*  */
+            return this.rubyTextRegex.Replace(rawText, "$1 ($2)");
+        }
+
+        public string PreProcessText(string rawText)
+        {
+            string newText = rawText;
+            if (this.EnablePreventRetranslation)
+            {
+                newText = this.CheckIfAlreadyTranslated(rawText);
+            }
+
+            newText = ExpandRubyText(newText);
+
+            return newText;
+        }
+
         public override void OnCreateRequest(IHttpRequestCreationContext context)
         {
             var json = new JSONObject();
 
             if (this.MaxTranslationsPerRequestInSetting != 1)
             {
-                if (this.EnablePreventRetranslation)
-                {
-                    json["batch"] = context.UntranslatedTexts.Select(txt => this.CheckIfAlreadyTranslated(txt)).ToArray();
-                }
-                else
-                {
-                    json["batch"] = context.UntranslatedTexts;
-                }
+                json["batch"] = context.UntranslatedTexts.Select(txt => this.PreProcessText(txt)).ToArray();
                 json["message"] = "translate batch";
             }
             else
             {
-                if (this.EnablePreventRetranslation)
-                {
-                    json["content"] = this.CheckIfAlreadyTranslated(context.UntranslatedText);
-                }
-                else
-                {
-                    json["content"] = context.UntranslatedText;
-                }
+                json["content"] = this.PreProcessText(context.UntranslatedText);
                 json["message"] = "translate sentences";
             }
 
