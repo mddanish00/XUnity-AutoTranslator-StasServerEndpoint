@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/mddanish00/XUnity-AutoTranslator-StasServerEndpoint/compare/v1.1.0...v1.2.0) (2026-10-18)
+
+
+### Features
+
+* use SimpleJSON from XUAT itself ([09ff0e7](https://github.com/mddanish00/XUnity-AutoTranslator-StasServerEndpoint/commit/09ff0e7fecf49b8c5d86c739a6ef158be551990d))
+
 ## [1.1.0](https://github.com/mddanish00/XUnity-AutoTranslator-StasServerEndpoint/compare/v1.0.0...v1.1.0) (2026-06-24)
 
 
