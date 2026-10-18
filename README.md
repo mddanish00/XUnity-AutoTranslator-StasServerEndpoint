@@ -79,7 +79,7 @@ For developers, it is recommended to use your project XUnity-AutoTranslator DLL 
 ```
 dotnet build -c Release -v n -f net35
 ```
-3. Copy the builded DLL, `build\Release\net35\StasServer.dll` to your project `XUnity.AutoTranslator\Translators` folder.
+3. Copy the builded DLL, `StasServerEndpoint\bin\Release\net35\StasServer.dll` to your project `XUnity.AutoTranslator\Translators` folder.
 
 ### IL2CPP Version
 
@@ -89,7 +89,7 @@ dotnet build -c Release -v n -f net35
 ```
 dotnet build -c Release -v n -f net6.0
 ```
-3. Copy the builded DLL, `build\Release\net6.0\StasServer.dll` to your project `XUnity.AutoTranslator\Translators` folder.
+3. Copy the builded DLL, `StasServerEndpoint\bin\Release\net6.0\StasServer.dll` to your project `XUnity.AutoTranslator\Translators` folder.
 
 ## License
 

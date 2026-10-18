@@ -58,8 +58,8 @@ jobs:
       - name: Build and zip the DLLs
         run: |
           dotnet build -c Release -v n
-          Compress-Archive -Path build/Release/net35/StasServer.dll -DestinationPath StasServerEndpoint-${{ inputs.repo_tag }}.zip
-          Compress-Archive -Path build/Release/net6.0/StasServer.dll -DestinationPath StasServerEndpoint-IL2CPP-${{ inputs.repo_tag }}.zip
+          Compress-Archive -Path StasServerEndpoint/bin/Release/net35/StasServer.dll -DestinationPath StasServerEndpoint-${{ inputs.repo_tag }}.zip
+          Compress-Archive -Path StasServerEndpoint/bin/Release/net6.0/StasServer.dll -DestinationPath StasServerEndpoint-IL2CPP-${{ inputs.repo_tag }}.zip
       
       - name: Upload the zipped DLLs as artifacts
         uses: actions/upload-artifact@v6
