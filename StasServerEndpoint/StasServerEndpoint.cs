@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using StasServer.SimpleJSON;
+using SimpleJSON;
 using XUnity.AutoTranslator.Plugin.Core.Endpoints;
 using XUnity.AutoTranslator.Plugin.Core.Endpoints.Http;
 using XUnity.AutoTranslator.Plugin.Core.Web;
@@ -271,7 +271,12 @@ namespace StasServer
 
             if (this.MaxTranslationsPerRequestInSetting != 1)
             {
-                json["batch"] = context.UntranslatedTexts.Select(txt => this.PreProcessText(txt)).ToArray();
+                var batchArr = new JSONArray();
+                foreach (var txt in context.UntranslatedTexts)
+                {
+                    batchArr.Add(this.PreProcessText(txt));
+                }
+                json["batch"] = batchArr;
                 json["message"] = "translate batch";
             }
             else
@@ -296,7 +301,12 @@ namespace StasServer
 
             if (this.MaxTranslationsPerRequestInSetting != 1)
             {
-                context.Complete(result.AsStringList.ToArray());
+                var resultArr = new List<string>();
+                foreach (JSONNode item in result.AsArray)
+                {
+                    resultArr.Add(item.Value);
+                }
+                context.Complete(resultArr.ToArray());
             }
             else
             {
